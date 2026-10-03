@@ -1,0 +1,239 @@
+/* ------------------------------------------------------------------
+   Design tokens
+   --u = 1 "design pixel". The reference comp is 736 wide, so every
+   size below is written in comp pixels and scales with the viewport.
+------------------------------------------------------------------- */
+:root {
+  --u: clamp(0.6px, 0.1359vw, 2.6px);
+  --yellow: #f8da4b;
+  --ink: #0e0e0e;
+  --bg: #fbfbfb;
+  --card: #f1f1f1;
+  --muted: #7a7a7a;
+  --pad: calc(16 * var(--u));
+  --sy: 0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+img { display: block; max-width: 100%; }
+button { font: inherit; }
+
+/* ---------- motion primitives ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(calc(16 * var(--u)));
+  transition: opacity 0.8s ease var(--d, 0ms), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms);
+}
+.reveal.in { opacity: 1; transform: none; }
+
+@keyframes kenburns {
+  0%   { transform: scale(1.08) translate3d(-1.5%, 0, 0); }
+  100% { transform: scale(1.18) translate3d(1.5%, -1%, 0); }
+}
+@keyframes hover {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-0.4deg); }
+  50%      { transform: translate3d(0, calc(-7 * var(--u)), 0) rotate(0.4deg); }
+}
+@keyframes glow {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 0.95; transform: scale(1.18); }
+}
+@keyframes drift {
+  0%   { transform: scale(1.1) translate3d(2%, 0, 0); }
+  100% { transform: scale(1.1) translate3d(-2%, 0, 0); }
+}
+
+/* ---------- NAV ---------- */
+.nav-wrap {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--pad) var(--pad) 0;
+  position: relative; z-index: 20;
+}
+.nav {
+  display: flex; align-items: center; gap: calc(60 * var(--u));
+  background: #efefef; border-radius: 999px;
+  padding: calc(8 * var(--u)) calc(14 * var(--u));
+  font-size: calc(11 * var(--u));
+}
+.nav a { white-space: nowrap; }
+.brand { display: flex; align-items: center; gap: calc(8 * var(--u)); font-weight: 500; }
+.brand img { width: calc(16 * var(--u)); height: calc(16 * var(--u)); border-radius: calc(5 * var(--u)); }
+.nav ul { display: flex; gap: calc(40 * var(--u)); }
+.nav-menu { margin-left: auto; border: 0; background: none; display: flex; gap: 2px; cursor: pointer; padding: 0 4px; }
+.nav-menu span { width: 2px; height: calc(12 * var(--u)); background: #aaa; }
+.btn-yellow {
+  background: var(--yellow); border-radius: 999px; white-space: nowrap;
+  padding: calc(11 * var(--u)) calc(26 * var(--u)); font-size: calc(11 * var(--u)); font-weight: 500;
+  display: inline-flex; gap: calc(8 * var(--u)); align-items: center;
+  transition: transform 0.2s;
+}
+.btn-yellow:hover { transform: translateY(-2px); }
+
+/* ---------- HERO ---------- */
+.hero { padding: 0 var(--pad); }
+.h-big {
+  font-weight: 400; font-size: calc(40 * var(--u)); line-height: 1.02; letter-spacing: -0.01em;
+  margin-top: calc(20 * var(--u));
+}
+.h-big span { display: block; white-space: nowrap; }
+.h-big .l1 { position: relative; }
+.h-big .l1::after {
+  content: ''; position: absolute; right: 0; top: 50%; width: 17%; height: 1px; background: var(--ink);
+}
+.h-big .l2 { text-align: right; font-weight: 300; margin-top: calc(2 * var(--u)); }
+
+.hero-meta { position: relative; height: calc(80 * var(--u)); z-index: 3; }
+.play {
+  position: absolute; left: calc(34 * var(--u)); top: calc(34 * var(--u));
+  display: flex; align-items: center; gap: calc(10 * var(--u)); font-size: calc(7 * var(--u));
+}
+.play-btn {
+  width: calc(30 * var(--u)); height: calc(30 * var(--u)); border-radius: 50%; background: var(--yellow);
+  display: grid; place-items: center; transition: transform 0.2s;
+}
+.play:hover .play-btn { transform: scale(1.12); }
+.hero-about {
+  position: absolute; left: 68.5%; top: calc(14 * var(--u)); width: calc(112 * var(--u));
+  font-size: calc(5.5 * var(--u)); line-height: 1.5; color: #555;
+}
+.hero-about b { font-weight: 500; color: #111; display: block; }
+
+/*
+  Stage geometry (the fix for image/drone/background placement)
+  - aspect-ratio 2.89 keeps the composition identical at any width
+  - photo occupies the bottom 75%  → top edge at 25% of stage
+  - drone is 58% wide, pinned to the stage top → its vertical middle lands on the photo's top edge
+*/
+.hero-stage { position: relative; aspect-ratio: 2.89; }
+.arcs {
+  position: absolute; left: 32%; bottom: 75%; width: 27%; aspect-ratio: 2 / 1; z-index: 1;
+  overflow: visible;
+}
+.hero-photo {
+  position: absolute; inset: 25% 0 0 0; border-radius: calc(14 * var(--u)); overflow: hidden; z-index: 2;
+  background: #2a1a0c;
+}
+.photo-bg {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  will-change: transform; animation: kenburns 26s ease-in-out infinite alternate;
+}
+.sun-glow {
+  position: absolute; right: 30%; top: 38%; width: 22%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 190, 80, 0.75), rgba(255, 140, 30, 0) 65%);
+  mix-blend-mode: screen; animation: glow 5s ease-in-out infinite; pointer-events: none;
+}
+.hero-drone {
+  position: absolute; top: 0; left: 21%; width: 58%; z-index: 4; pointer-events: none;
+  transform: translate3d(0, calc(var(--sy) * 0.06px), 0);
+}
+.hero-drone img { width: 100%; height: auto; animation: hover 5.5s ease-in-out infinite; filter: drop-shadow(0 calc(26 * var(--u)) calc(22 * var(--u)) rgba(0, 0, 0, 0.35)); }
+
+.reviews {
+  position: absolute; right: 0; bottom: 0; width: 26.6%; z-index: 5;
+  background: #f2f2f2; border-radius: calc(12 * var(--u)) 0 calc(14 * var(--u)) 0;
+  padding: calc(14 * var(--u)) calc(14 * var(--u)) calc(12 * var(--u));
+}
+.reviews-top { display: flex; align-items: center; justify-content: space-between; }
+.reviews-top strong { font-size: calc(22 * var(--u)); font-weight: 400; }
+.avatars { display: flex; }
+.avatars img {
+  width: calc(20 * var(--u)); height: calc(20 * var(--u)); border-radius: 50%;
+  border: calc(1.5 * var(--u)) solid #f2f2f2; margin-left: calc(-6 * var(--u)); object-fit: cover; position: relative;
+}
+.avatars img.ph { background: linear-gradient(135deg, #a8a8a8, #666); color: transparent; }
+.reviews small { display: block; font-size: calc(7 * var(--u)); letter-spacing: 0.04em; font-weight: 500; margin-top: calc(4 * var(--u)); }
+.reviews p { font-size: calc(6.5 * var(--u)); color: var(--muted); margin: calc(6 * var(--u)) 0 calc(14 * var(--u)); line-height: 1.4; }
+.reviews a { font-size: calc(8 * var(--u)); display: flex; gap: calc(5 * var(--u)); align-items: center; text-decoration: underline; }
+
+/* ---------- shared ---------- */
+.tag { font-size: calc(7 * var(--u)); letter-spacing: 0.04em; display: flex; gap: calc(6 * var(--u)); align-items: center; }
+.tag i { width: calc(5 * var(--u)); height: calc(5 * var(--u)); border-radius: 50%; background: #111; box-shadow: 0 0 0 calc(2 * var(--u)) #ddd; }
+.h-mid { font-weight: 400; font-size: calc(24 * var(--u)); line-height: 1.08; letter-spacing: -0.005em; }
+
+/* ---------- TECHNOLOGY ---------- */
+.tech {
+  padding: calc(56 * var(--u)) var(--pad) 0;
+  display: grid; grid-template-columns: 31% 1fr; align-items: start;
+}
+.tech .tag { margin-top: calc(4 * var(--u)); }
+.lead { font-size: calc(7.5 * var(--u)); line-height: 1.55; color: #444; max-width: calc(150 * var(--u)); margin-top: calc(18 * var(--u)); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(8 * var(--u)); margin-top: calc(34 * var(--u)); }
+.stat { background: var(--card); border-radius: calc(8 * var(--u)); padding: calc(10 * var(--u)) calc(12 * var(--u)) calc(12 * var(--u)); min-height: calc(64 * var(--u)); }
+.stat.yellow { background: var(--yellow); }
+.stat-ico { width: calc(10 * var(--u)); height: calc(10 * var(--u)); display: block; opacity: 0.8; }
+.stat strong { display: block; white-space: nowrap; font-size: calc(21 * var(--u)); font-weight: 400; letter-spacing: -0.01em; margin-top: calc(8 * var(--u)); }
+.stat strong span { font-size: calc(9 * var(--u)); color: #444; margin-left: calc(2 * var(--u)); }
+.stat em { font-style: normal; font-size: calc(6.5 * var(--u)); color: #444; display: block; margin-top: calc(2 * var(--u)); }
+.foot { font-size: calc(5.5 * var(--u)); color: #888; margin-top: calc(10 * var(--u)); }
+
+/* ---------- PERIMETER ---------- */
+.perimeter { padding: calc(60 * var(--u)) 0 calc(40 * var(--u)); }
+.perimeter .tag { padding: 0 var(--pad); }
+.perimeter .perimeter-head { margin: calc(-12 * var(--u)) 0 0 calc(var(--pad) + (100% - 2 * var(--pad)) * 0.31); }
+
+/*
+  Field geometry: aspect-ratio 2.42, ground = bottom 75%, drone 64% wide pinned to the top.
+  Drone's legs and lower body therefore always sit inside the ground photo.
+*/
+.field { position: relative; aspect-ratio: 2.42; margin-top: calc(34 * var(--u)); }
+.ground { position: absolute; inset: 25% 0 0 0; overflow: hidden; background: #3a2a18; }
+.ground .photo-bg { animation: drift 30s ease-in-out infinite alternate; }
+.field-drone {
+  position: absolute; top: 0; left: 18%; width: 64%; z-index: 2; pointer-events: none;
+  transform: translate3d(0, calc(var(--sy) * -0.02px), 0);
+}
+.field-drone img { width: 100%; height: auto; animation: hover 6.5s ease-in-out infinite; animation-delay: -2s; filter: drop-shadow(0 calc(30 * var(--u)) calc(26 * var(--u)) rgba(0, 0, 0, 0.45)); }
+
+.chips { position: absolute; inset: 0; z-index: 3; }
+.chip {
+  position: absolute; left: var(--x); top: var(--y); width: 17.5%;
+  display: flex; align-items: center; gap: calc(8 * var(--u));
+  background: #f3f3f3; border-radius: calc(9 * var(--u));
+  padding: calc(9 * var(--u)) calc(10 * var(--u));
+  font-size: calc(6.2 * var(--u)); line-height: 1.35;
+  box-shadow: 0 calc(6 * var(--u)) calc(18 * var(--u)) rgba(0, 0, 0, 0.18);
+}
+.chip.yellow { background: var(--yellow); }
+.cico { width: calc(26 * var(--u)); height: calc(26 * var(--u)); border-radius: 50%; background: #111; color: #fff; flex: none; display: grid; place-items: center; }
+.chip.yellow .cico { color: var(--yellow); }
+.cico svg { width: 55%; height: 55%; }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .photo-bg, .sun-glow, .hero-drone img, .field-drone img { animation: none; }
+  .reveal { transition: none; opacity: 1; transform: none; }
+}
+
+/* ---------- small screens: re-scale the comp, stack the chips ---------- */
+@media (max-width: 760px) {
+  :root { --u: calc(100vw / 400); }
+  .nav { gap: calc(24 * var(--u)); }
+  .nav ul { gap: calc(16 * var(--u)); }
+  .h-big { font-size: calc(24 * var(--u)); }
+  .h-big span { white-space: normal; }
+  .h-big .l1::after { display: none; }
+  .hero-meta { height: calc(70 * var(--u)); }
+  .hero-about { width: calc(120 * var(--u)); left: auto; right: 0; font-size: calc(6 * var(--u)); }
+  .play { left: 0; }
+  .reviews { width: 44%; }
+  .tech { grid-template-columns: 1fr; }
+  .tech .tag { margin-bottom: calc(16 * var(--u)); }
+  .lead { max-width: 100%; font-size: calc(8 * var(--u)); }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .perimeter .perimeter-head { margin-left: var(--pad); margin-top: calc(14 * var(--u)); }
+  .field { aspect-ratio: auto; display: flex; flex-direction: column; }
+  .field-drone { position: relative; left: 0; width: 100%; }
+  .ground { inset: 25vw 0 0 0; }
+  .chips { position: relative; inset: auto; display: grid; gap: calc(8 * var(--u)); padding: calc(10 * var(--u)) var(--pad) calc(20 * var(--u)); }
+  .chip { position: relative; left: 0; top: 0; width: 100%; font-size: calc(8 * var(--u)); }
+}
